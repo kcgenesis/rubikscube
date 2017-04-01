@@ -7,6 +7,7 @@ var VERTICES_PER_CUBIE  = 36;
 var NUM_CUBIE = 2;
 var points = [];
 var colors = [];
+var fColor;
 
 var xAxis = 0;
 var yAxis = 1;
@@ -21,6 +22,15 @@ var NumVertices = VERTICES_PER_CUBIE*NUM_CUBIE;
 
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
+
+const black = vec4(0.0, 0.0, 0.0, 1.0);
+const red = vec4(1.0, 0.0, 0.0, 1.0);
+const yellow = vec4( 1.0, 1.0, 0.0, 1.0 );
+const green = vec4(0.0, 1.0, 0.0, 1.0 );
+const blue = vec4(0.0, 0.0, 1.0, 1.0);
+const magenta = vec4(1.0, 0.0, 1.0, 1.0);
+const cyan = vec4(0.0, 1.0, 1.0, 1.0);
+const white = vec4(1.0, 1.0, 1.0, 1.0);
 
 var near = -10;
 var far = 10;
@@ -45,8 +55,9 @@ window.onload = function init()
     if ( !gl ) { alert( "WebGL isn't available" ); }
 
     //colorCube();
-    var cubie1 = new Cubie();
-    var cubie2 = new Cubie();
+    //var cubie1 = new Cubie();
+    //var cubie2 = new Cubie();
+
     //translation by +/- z hides part of cubie2's faces...
     //maybe im intersecting them with the camera.s
     //perhaps look into viewing to see how to avoid this issue
@@ -70,13 +81,14 @@ window.onload = function init()
     var program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
-    var cBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW );
+    //var cBuffer = gl.createBuffer();
+    //gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
+    //gl.bufferData( gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW );
 
-    var vColor = gl.getAttribLocation( program, "vColor" );
-    gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vColor );
+
+    //var vColor = gl.getAttribLocation( program, "vColor" );
+    //gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
+    //gl.enableVertexAttribArray( vColor );
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
@@ -88,6 +100,7 @@ window.onload = function init()
     gl.enableVertexAttribArray( vPosition );
 
     r_thetaLoc = gl.getUniformLocation(program, "r_theta");
+    fColor = gl.getUniformLocation(program, "fColor");
 
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
@@ -97,7 +110,7 @@ window.onload = function init()
 
     document.getElementById( "xButton" ).onclick = function () {
         axis = xAxis;
-        cube_rotate();
+        requestAnimFrame(cube_rotate);
     };
     document.getElementById( "yButton" ).onclick = function () {
         axis = yAxis;
@@ -110,7 +123,21 @@ window.onload = function init()
 
     render();
 }
+class Cube {
+  var cubie_plane = [
+      vec3( -1,  0,  1),
+      vec3(  0,  0,  1),
+      vec3(  1,  0,  1),
+      vec3( -1,  0,  0),
+      vec3(  0,  0,  0),
+      vec3(  1,  0,  0),
+      vec3( -1,  0, -1),
+      vec3(  0,  0, -1),
+      vec3(  1,  0, -1),
 
+
+  ];
+}
 class Cubie {
       quad(a,b,c,d){
         var vertices = [
@@ -133,13 +160,14 @@ class Cubie {
             [ 0.0, 1.0, 1.0, 1.0 ],  // cyan
             [ 1.0, 1.0, 1.0, 1.0 ]   // white
         ];
-        var indices = [ a, b, c, a, c, d ];
+        //var indices = [ a, b, c, a, c, d ];
+        var indices = [ a, b, c, d ];
         for ( var i = 0; i < indices.length; ++i ) {
             this.points.push( vertices[indices[i]] );
             //colors.push( vertexColors[indices[i]] );
             // for solid colored faces use
-            this.colors.push(vertexColors[a]);
         }
+        colors.push(vertexColors[a]);
       }
       //2 triangles per quad
       //6 vertices per quad
@@ -147,7 +175,7 @@ class Cubie {
 
       constructor(){
         this.points = [];
-        this.colors = [];
+        //this.colors = [];
         this.quad( 1, 0, 3, 2 );
         this.quad( 2, 3, 7, 6 );
         this.quad( 3, 0, 4, 7 );
@@ -158,7 +186,7 @@ class Cubie {
     create(){
       for ( var i = 0; i < this.points.length; ++i ) {
         points.push(this.points[i]);
-        colors.push(this.colors[i]);
+        //colors.push(this.colors[i]);
       }
     }
     cubie_translate(x,y,z){
@@ -223,7 +251,16 @@ function render()
 
     gl.uniform3fv(r_thetaLoc, r_theta);
 
-    gl.drawArrays( gl.TRIANGLES, 0, NumVertices );
+    //6 vertices for two triangles
+    for(var i=0; i<points.length; i+=4) {
+        gl.uniform4fv(fColor, flatten(colors[i/4]));
+        gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+        gl.uniform4fv(fColor, flatten(black));
+        gl.drawArrays( gl.LINE_LOOP, i, 4 );
+    }
+
+
+    //gl.drawArrays( gl.TRIANGLES, 0, NumVertices );
 
 
 

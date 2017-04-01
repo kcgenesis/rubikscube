@@ -8,18 +8,6 @@ var NumVertices  = 36;
 var points = [];
 var colors = [];
 
-const black = vec4(0.0, 0.0, 0.0, 1.0);
-const red = vec4(1.0, 0.0, 0.0, 1.0);
-const yellow = vec4( 1.0, 1.0, 0.0, 1.0 );
-const green = vec4(0.0, 1.0, 0.0, 1.0 );
-const blue = vec4(0.0, 0.0, 1.0, 1.0);
-const magenta = vec4(1.0, 0.0, 1.0, 1.0);
-const cyan = vec4(0.0, 1.0, 1.0, 1.0);
-const white = vec4(1.0, 1.0, 1.0, 1.0);
-
-
-
-
 var xAxis = 0;
 var yAxis = 1;
 var zAxis = 2;

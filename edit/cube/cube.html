@@ -3,17 +3,20 @@
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 
-attribute  vec4 vPosition;
-attribute  vec4 vColor;
-varying vec4 fColor;
+attribute vec4 vPosition;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
 
-uniform vec3 theta;
+//attribute  vec4 vColor;
+//varying vec4 fColor;
+
+uniform vec3 r_theta;
 
 void main()
 {
     // Compute the sines and cosines of theta for each of
     //   the three axes in one computation.
-    vec3 angles = radians( theta );
+    vec3 angles = radians( r_theta );
     vec3 c = cos( angles );
     vec3 s = sin( angles );
 
@@ -34,9 +37,10 @@ void main()
 		    0.0,  0.0, 1.0, 0.0,
 		    0.0,  0.0, 0.0, 1.0 );
 
-    fColor = vColor;
-    gl_Position = rz * ry * rx * vPosition;
-    gl_Position.z = -gl_Position.z;
+    //fColor = vColor;
+    //gl_Position = rz * ry * rx * vPosition;
+    //gl_Position.z = -gl_Position.z;
+    gl_Position = projectionMatrix*modelViewMatrix*rz*ry*rx*vPosition;
 }
 </script>
 
@@ -44,7 +48,8 @@ void main()
 
 precision mediump float;
 
-varying vec4 fColor;
+//varying vec4 fColor;
+uniform vec4 fColor;
 
 void
 main()
@@ -56,7 +61,7 @@ main()
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MV.js"></script>
-<script type="text/javascript" src="cubev.js"></script>
+<script type="text/javascript" src="cube.js"></script>
 
 <body>
 <canvas id="gl-canvas" width="512"" height="512">
@@ -68,7 +73,6 @@ Oops ... your browser doesn't support the HTML5 canvas element
 <button id= "xButton">Rotate X</button>
 <button id= "yButton">Rotate Y</button>
 <button id= "zButton">Rotate Z</button>
-
 
 </body>
 </html>
