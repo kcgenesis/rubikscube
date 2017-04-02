@@ -121,8 +121,12 @@ function render()
 {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    var eye = vec3( radius*Math.sin(theta)*Math.cos(phi),
+    /*var eye = vec3( radius*Math.sin(theta)*Math.cos(phi),
                     radius*Math.sin(theta)*Math.sin(phi),
+                    radius*Math.cos(theta));*/
+
+    var eye = vec3( radius*Math.cos(phi),
+                    radius*Math.sin(phi),
                     radius*Math.cos(theta));
 
     var modelViewMatrix = lookAt( eye, at, up );

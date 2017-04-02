@@ -141,6 +141,8 @@ var render = function() {
         eye = vec3(radius*Math.sin(phi), radius*Math.sin(theta),
              radius*Math.cos(phi));
 
+
+
         mvMatrix = lookAt(eye, at , up);
         pMatrix = ortho(left, right, bottom, ytop, near, far);
 
