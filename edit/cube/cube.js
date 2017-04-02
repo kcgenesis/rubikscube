@@ -2,24 +2,34 @@
 
 var canvas;
 var gl;
-
 var VERTICES_PER_CUBIE  = 36;
 var NUM_CUBIE = 2;
 var points = [];
 var colors = [];
 var fColor;
-
+var cubie_num;
 var xAxis = 0;
 var yAxis = 1;
 var zAxis = 2;
 
 var axis = 0;
-var r_theta = [ 0, 0, 0 ];
-var r_plane = [0,0,0,0,0,0,0,0,0];
+var r_theta = [0,0,0];
+var r_planes = [
+  vec3(0,0,0),
+  vec3(0,0,0),
+  vec3(0,0,0)
+];
+var r_plane_pick = [
+  vec3(0,0,0),
+  vec3(0,0,0),
+  vec3(0,0,0)
+];
+var program;
 var deg=null;
 var pos=null;
 var animating =null;
 var r_thetaLoc;
+var r_planeLoc;
 var NumVertices = VERTICES_PER_CUBIE*NUM_CUBIE;
 
 const at = vec3(0.0, 0.0, 0.0);
@@ -48,7 +58,8 @@ var bottom = -3.0;
 
 var modeViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
-
+var vBuffer,vPosition;
+var myCube;
 window.onload = function init()
 {
     canvas = document.getElementById( "gl-canvas" );
@@ -65,8 +76,7 @@ window.onload = function init()
     //var myCube = new Cubie_plane();
     //myCube.create();
 
-    var myCube = new Cube();
-    myCube.create();
+
 
     gl.viewport( 0, 0, canvas.width, canvas.height );
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
@@ -79,107 +89,247 @@ window.onload = function init()
     //
     //  Load shaders and initialize attribute buffers
     //
-    var program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
     //var cBuffer = gl.createBuffer();
     //gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
     //gl.bufferData( gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW );
-
-
     //var vColor = gl.getAttribLocation( program, "vColor" );
     //gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
     //gl.enableVertexAttribArray( vColor );
 
-    var vBuffer = gl.createBuffer();
+
+    vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
 
-
-    var vPosition = gl.getAttribLocation( program, "vPosition" );
+    vPosition = gl.getAttribLocation( program, "vPosition" );
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
 
+
+
+
+
+
     r_thetaLoc = gl.getUniformLocation(program, "r_theta");
     fColor = gl.getUniformLocation(program, "fColor");
-
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
 
     //event listeners for buttons
 
-    document.getElementById( "xButton" ).onclick = function () {rotate(xAxis,1);};
-    document.getElementById( "yButton" ).onclick = function () {rotate(yAxis,1);};
-    document.getElementById( "zButton" ).onclick = function () {rotate(zAxis,1);};
-    document.getElementById( "nxButton" ).onclick = function () {rotate(xAxis,-1);};
-    document.getElementById( "nyButton" ).onclick = function () {rotate(yAxis,-1);};
-    document.getElementById( "nzButton" ).onclick = function () {rotate(zAxis,-1);};
+    document.getElementById( "xButton" ).onclick = function () {
+      var planes = [
+        vec3(1,1,1),
+        vec3(0,0,0),
+        vec3(0,0,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "yButton" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(1,1,1),
+        vec3(0,0,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "zButton" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(0,0,0),
+        vec3(1,1,1)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "nxButton" ).onclick = function () {
+      var planes = [
+        vec3(1,1,1),
+        vec3(0,0,0),
+        vec3(0,0,0)
+      ];
+      rotate(planes,-1);
+    };
+    document.getElementById( "nyButton" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(1,1,1),
+        vec3(0,0,0)
+      ];
+      rotate(planes,-1);
+    };
+    document.getElementById( "nzButton" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(0,0,0),
+        vec3(1,1,1)
+      ];
+      rotate(planes,-1);
+    };
+
+    document.getElementById( "rplane1" ).onclick = function () {
+      var planes = [
+        vec3(1,0,0),
+        vec3(0,0,0),
+        vec3(0,0,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "rplane2" ).onclick = function () {
+      var planes = [
+        vec3(0,1,0),
+        vec3(0,0,0),
+        vec3(0,0,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "rplane3" ).onclick = function () {
+      var planes = [
+        vec3(0,0,1),
+        vec3(0,0,0),
+        vec3(0,0,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "rplane4" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(1,0,0),
+        vec3(0,0,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "rplane5" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(0,1,0),
+        vec3(0,0,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "rplane6" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(0,0,1),
+        vec3(0,0,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "rplane7" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(0,0,0),
+        vec3(1,0,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "rplane8" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(0,0,0),
+        vec3(0,1,0)
+      ];
+      rotate(planes,1);
+    };
+    document.getElementById( "rplane9" ).onclick = function () {
+      var planes = [
+        vec3(0,0,0),
+        vec3(0,0,0),
+        vec3(0,0,1)
+      ];
+      rotate(planes,1);
+    };
+
+
+
     document.getElementById( "Button1" ).onclick = function () {theta += dr;};
     document.getElementById( "Button2" ).onclick = function () {theta -= dr;};
     document.getElementById( "Button3" ).onclick = function () {phi += dr;};
     document.getElementById( "Button4" ).onclick = function () {phi -= dr;};
-    document.getElementById( "Button4" ).onclick = function () {randomize();};
-    document.getElementById( "pButton" ).onclick = function () {rotate(zAxis,-1);};
+    document.getElementById( "Button7" ).onclick = function () {randomize();};
 
 
+    myCube = new Cube();
+    myCube.render();
     animRender();
 }
 //creates rubiks cube at the origin
 class Cube {
+
   constructor(){
-    this.points = [];
-    var cubie_plane_arr = [];
-    var t2 = [
-        vec3(  0,  1,  0),
-        vec3(  0,  0,  0),
-        vec3(  0, -1,  0)
+    this.cubies = [];
+    this.t = [
+      vec3( -1, -1,  1),
+      vec3(  0, -1,  1),
+      vec3(  1, -1,  1),
+      vec3( -1, -1,  0),
+      vec3(  0, -1,  0),
+      vec3(  1, -1,  0),
+      vec3( -1, -1, -1),
+      vec3(  0, -1, -1),
+      vec3(  1, -1, -1),
+      vec3( -1,  0,  1),
+      vec3(  0,  0,  1),
+      vec3(  1,  0,  1),
+      vec3( -1,  0,  0),
+      vec3(  0,  0,  0),
+      vec3(  1,  0,  0),
+      vec3( -1,  0, -1),
+      vec3(  0,  0, -1),
+      vec3(  1,  0, -1),
+      vec3( -1,  1,  1),
+      vec3(  0,  1,  1),
+      vec3(  1,  1,  1),
+      vec3( -1,  1,  0),
+      vec3(  0,  1,  0),
+      vec3(  1,  1,  0),
+      vec3( -1,  1, -1),
+      vec3(  0,  1, -1),
+      vec3(  1,  1, -1)
     ];
-    for(var i=0;i<3;i++){
-      cubie_plane_arr.push(new Cubie_plane(t2[i]));
-      for(var j=0;j<cubie_plane_arr[i].points.length;j++){
-        this.points.push(cubie_plane_arr[i].points[j]);
-      }
+    for(var i=0;i<this.t.length;i++){
+        var c = new Cubie(this.t[i]);
+        this.cubies.push(c);
     }
   }
-  create(){
-    console.log(this.points);
-    for(var i=0;i<this.points.length;i++){
-      points.push(this.points[i]);
+  render(){
+    //console.log(this.points);
+    //its only rendering the first cubie.
+
+    for(var i=0;i<this.cubies.length;i++){
+      points = [];
+      for(var j=0;j<this.cubies[i].points.length;j++){
+        points.push(this.cubies[i].points[j]);
+      }
+
+      /*
+        each cubie is rendered one by one.
+        each has an rx ry and rz:
+        r_theta_p = [x,y,z];
+        which can be determined from the table of planar rotations.
+        var r_theta = [
+          vec3(0,0,0),
+          vec3(0,0,0),
+          vec3(0,0,0)
+        ];
+      */
+      r_theta =[];
+      for(var j=0;j<3;j++){
+        r_theta.push(r_planes[j][this.t[i][j]+1]);
+      }
+      //console.log(r_theta);
+      //console.log(points);
+      //cubie_num = i;
+      //console.log(i);
+      render();
+      //colors.shift();
     }
+
   }
 }
-
-
-class Cubie_plane {
-  constructor(x,y,z){
-    this.points=[];
-    var cubie_arr=[];
-    var t1 = [
-        vec3( -1,  0,  1),
-        vec3(  0,  0,  1),
-        vec3(  1,  0,  1),
-        vec3( -1,  0,  0),
-        vec3(  0,  0,  0),
-        vec3(  1,  0,  0),
-        vec3( -1,  0, -1),
-        vec3(  0,  0, -1),
-        vec3(  1,  0, -1)
-    ];
-    for(var i=0;i<9;i++){ //translate individuals
-      cubie_arr.push(new Cubie(t1[i]));
-    }
-    for(var i=0;i<9;i++){ //translate group
-      cubie_arr[i].cubie_translate(x,y,z);
-      for(var j=0;j<cubie_arr[i].points.length;j++){
-        this.points.push(cubie_arr[i].points[j]);
-      }
-    }
-  }
-}
-
-
-
 class Cubie {
       quad(a,b,c,d){
         var vertices = [
@@ -220,22 +370,13 @@ class Cubie {
         this.quad( 6, 5, 1, 2 );
         this.quad( 4, 5, 6, 7 );
         this.quad( 5, 4, 0, 1 );
-        this.cubie_translate(x,y,z);
+        this.translate(x,y,z);
+        //console.log("translating by" +x+" "+ y+" " +z);
       }
-    //create(){
-      //for ( var i = 0; i < this.points.length; ++i ) {
-      //  points.push(this.points[i]);
-        //colors.push(this.colors[i]);
-    //  }
-  //  }
-    cubie_translate(x,y,z){
+    translate(x,y,z){
       if (!x) x=[0,0,0];
       for ( var i = 0; i < this.points.length; ++i ) {
-        //console.log(this.points[i]);
         this.points[i] = mult(translate(x,y,z),this.points[i]);
-        //console.log(this.points[i]);
-        //console.log("-----");
-
       }
     }
 }
@@ -245,39 +386,30 @@ function randomize(){
 
 }
 
-function rotate(arg_axis,arg_sign){
+function rotate(planes,arg_sign){
   if(animating==1){
     console.log("cant rotate");
     return;
   }
-  axis = arg_axis;
+  r_plane_pick = planes;
   pos = arg_sign;
   requestAnimFrame(cube_rotate);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 function cube_rotate(){
-
-animating=1;
+  animating=1;
   if(!deg){deg=0.0;}
-
-  deg += pos*2.0;
-  r_theta[axis] += pos*2.0;
-  if(r_theta[axis] >= 360) r_theta[axis] -= 360;
-  if(r_theta[axis] < 0) r_theta[axis] += 360;
-  render();
+  deg += pos*5.0;
+  for(var i=0;i<r_planes.length;i++){
+    for(var j=0;j<r_planes[i].length;j++){
+      if(r_plane_pick[i][j]==1){
+        r_planes[i][j] += pos*5.0;
+        if(r_planes[i][j] >= 360) {r_planes[i][j] -= 360;}
+        else if(r_planes[i][j] < 0) {r_planes[i][j] += 360;}
+      }
+    }
+  }
+  myCube.render();
   if (pos*deg<90) {
     requestAnimFrame(cube_rotate);
   }else{
@@ -287,17 +419,21 @@ animating=1;
   }
 }
 
-
-//we can no longer send r_theta to the GPU
-//there must be an r_theta for each in dividual cubie_plane.
 function animRender(){
-  render();
+  myCube.render();
   requestAnimFrame(animRender);
 }
 
 function render()
 {
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    //gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    vBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
+    //console.log(points[0][0]+" "+points[0][1]+" "+points[0][2]+" "+points[0][3] );
+    vPosition = gl.getAttribLocation( program, "vPosition" );
+    gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vPosition );
 
     /*
     var eye = vec3( radius*Math.sin(theta)*Math.cos(phi),
@@ -327,10 +463,4 @@ function render()
         gl.uniform4fv(fColor, flatten(black));
         gl.drawArrays( gl.LINE_LOOP, i, 4 );
     }
-
-
-    //gl.drawArrays( gl.TRIANGLES, 0, NumVertices );
-
-
-
 }
