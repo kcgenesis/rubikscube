@@ -25,9 +25,11 @@ var r_plane_pick = [
   vec3(0,0,0)
 ];
 var program;
+
 var deg=null;
 var pos=null;
 var animating =null;
+
 var r_thetaLoc;
 var r_planeLoc;
 var NumVertices = VERTICES_PER_CUBIE*NUM_CUBIE;
@@ -107,11 +109,6 @@ window.onload = function init()
     vPosition = gl.getAttribLocation( program, "vPosition" );
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
-
-
-
-
-
 
     r_thetaLoc = gl.getUniformLocation(program, "r_theta");
     fColor = gl.getUniformLocation(program, "fColor");
@@ -257,8 +254,18 @@ window.onload = function init()
     animRender();
 }
 //creates rubiks cube at the origin
+/*
+  each cubie is rendered one by one.
+  each has an rx ry and rz:
+  r_theta_p = [x,y,z];
+  which can be determined from the table of planar rotations.
+  var r_theta = [
+    vec3(0,0,0),
+    vec3(0,0,0),
+    vec3(0,0,0)
+  ];
+*/
 class Cube {
-
   constructor(){
     this.cubies = [];
     this.t = [
@@ -296,40 +303,24 @@ class Cube {
     }
   }
   render(){
-    //console.log(this.points);
-    //its only rendering the first cubie.
-
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     for(var i=0;i<this.cubies.length;i++){
       points = [];
       for(var j=0;j<this.cubies[i].points.length;j++){
         points.push(this.cubies[i].points[j]);
       }
 
-      /*
-        each cubie is rendered one by one.
-        each has an rx ry and rz:
-        r_theta_p = [x,y,z];
-        which can be determined from the table of planar rotations.
-        var r_theta = [
-          vec3(0,0,0),
-          vec3(0,0,0),
-          vec3(0,0,0)
-        ];
-      */
       r_theta =[];
       for(var j=0;j<3;j++){
         r_theta.push(r_planes[j][this.t[i][j]+1]);
       }
-      //console.log(r_theta);
-      //console.log(points);
-      //cubie_num = i;
-      //console.log(i);
       render();
-      //colors.shift();
     }
 
   }
 }
+//creates subcube at optional pos or origin
+/// try to make inner faces black.
 class Cubie {
       quad(a,b,c,d){
         var vertices = [
@@ -361,7 +352,6 @@ class Cubie {
         }
         colors.push(vertexColors[a]);
       }
-      //creates subcube at defined pos or origin
       constructor(x,y,z){
         this.points = [];
         this.quad( 1, 0, 3, 2 );
@@ -371,8 +361,7 @@ class Cubie {
         this.quad( 4, 5, 6, 7 );
         this.quad( 5, 4, 0, 1 );
         this.translate(x,y,z);
-        //console.log("translating by" +x+" "+ y+" " +z);
-      }
+    }
     translate(x,y,z){
       if (!x) x=[0,0,0];
       for ( var i = 0; i < this.points.length; ++i ) {
@@ -456,7 +445,7 @@ function render()
 
     gl.uniform3fv(r_thetaLoc, r_theta);
 
-    //6 vertices for two triangles
+    //6 faces 4 points each
     for(var i=0; i<points.length; i+=4) {
         gl.uniform4fv(fColor, flatten(colors[i/4]));
         gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
