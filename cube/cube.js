@@ -52,7 +52,7 @@ var radius = 15.0;
 var theta  = 0.0;
 var phi    = 0.0;
 var dr = 5.0 * Math.PI/180.0;
-theta -= phi += 2*dr;
+theta = phi += 2*dr;
 
 var left = -3.0;
 var right = 3.0;
@@ -145,15 +145,15 @@ window.onload = function init()
     };
     document.getElementById( "nxButton" ).onclick = function () {
       var planes = mat3(
-        1,0,0,
+        1,1,1,
         0,0,0,
         0,0,0
       );(planes,-1);
     };
     document.getElementById( "nyButton" ).onclick = function () {
       var planes = mat3(
-        1,0,0,
         0,0,0,
+        1,1,1,
         0,0,0
       );
       rotate(planes,-1);
@@ -162,87 +162,82 @@ window.onload = function init()
       var planes = mat3(
         1,0,0,
         0,0,0,
-        0,0,0
+        1,1,1
       );
       rotate(planes,-1);
     };
 
     document.getElementById( "rplane1" ).onclick = function () {
-      /*var planes = [
-        vec3(1,0,0),
-        vec3(0,0,0),
-        vec3(0,0,0)
-      ];*/
+
       var planes = mat3(
         1,0,0,
         0,0,0,
         0,0,0
       );
-      //rotate(transpose(planes),1);
       rotate(planes,1);
     };
     document.getElementById( "rplane2" ).onclick = function () {
-      var planes = [
-        vec3(0,1,0),
-        vec3(0,0,0),
-        vec3(0,0,0)
-      ];
+      var planes = mat3(
+        0,1,0,
+        0,0,0,
+        0,0,0
+      );
       rotate(planes,1);
     };
     document.getElementById( "rplane3" ).onclick = function () {
-      var planes = [
-        vec3(0,0,1),
-        vec3(0,0,0),
-        vec3(0,0,0)
-      ];
+      var planes = mat3(
+        0,0,1,
+        0,0,0,
+        0,0,0
+      );
       rotate(planes,1);
     };
     document.getElementById( "rplane4" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(1,0,0),
-        vec3(0,0,0)
-      ];
+      var planes = mat3(
+        0,0,0,
+        1,0,0,
+        0,0,0
+      );
       rotate(planes,1);
     };
     document.getElementById( "rplane5" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(0,1,0),
-        vec3(0,0,0)
-      ];
+      var planes = mat3(
+        0,0,0,
+        0,1,0,
+        0,0,0
+      );
       rotate(planes,1);
     };
     document.getElementById( "rplane6" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(0,0,1),
-        vec3(0,0,0)
-      ];
+      var planes = mat3(
+        0,0,0,
+        0,0,1,
+        0,0,0
+      );
       rotate(planes,1);
     };
     document.getElementById( "rplane7" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(0,0,0),
-        vec3(1,0,0)
-      ];
+      var planes = mat3(
+        0,0,0,
+        0,0,0,
+        1,0,0
+      );
       rotate(planes,1);
     };
     document.getElementById( "rplane8" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(0,0,0),
-        vec3(0,1,0)
-      ];
+      var planes = mat3(
+        0,0,0,
+        0,0,0,
+        0,1,0
+      );
       rotate(planes,1);
     };
     document.getElementById( "rplane9" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(0,0,0),
-        vec3(0,0,1)
-      ];
+      var planes = mat3(
+        0,0,0,
+        0,0,0,
+        0,0,1
+      );
       rotate(planes,1);
     };
 
@@ -257,7 +252,6 @@ window.onload = function init()
 
     myCube = new Cube();
     myCube.render();
-    //animRender();
 }
 //creates rubiks cube at the origin
 
@@ -293,6 +287,8 @@ class Cube {
       vec3(  0,  1, -1),
       vec3(  1,  1, -1)
     ];
+
+
     for(var i=0;i<this.t.length;i++){
         var c = new Cubie(this.t[i]);
         this.cubies.push(c);
@@ -305,10 +301,12 @@ class Cube {
       for(var j=0;j<this.cubies[i].points.length;j++){
         points.push(this.cubies[i].points[j]);
       }
-
       r_theta =[];
       for(var j=0;j<3;j++){
+        //where's the cube located in the original cube
+        //use that to find which axis it belongs to
         r_theta.push(r_planes[j][this.t[i][j]+1]);
+
       }
       render();
     }
@@ -392,7 +390,7 @@ function rotate(planes,arg_sign){
     return;
   }else{
     console.log("rotating");
-    r_plane_pick = planes;
+    r_plane_pick = transpose(planes);
     pos = arg_sign;
     cube_rotate();
   }
@@ -428,13 +426,35 @@ function cube_rotate(){
   }else{
     deg=null;
     animating=0;
-    console.log(r_planes);
+    //console.log(r_planes);
   }
 }
 /*
   plane rotation ==> plane remapping
 
-  rotate plane 1: equivalence
+  90 deg x:
+  z=>y ,y=>-z
+  90 deg y:
+  x=>z, z=>-x
+  90 deg z:
+  y=>x,x=>-y
+
+  180 deg x:
+  z=>-z ,y=>-y
+  180 deg y:
+  x=>-x, z=>-z
+  180 deg z:
+  y=>-y,x=>-x
+
+  270 deg x:
+  z=>-y ,y=>z
+  270 deg y:
+  x=>-z, z=>x
+  270 deg z:
+  y=>-x,x=>y
+
+
+
 
 
 */
@@ -457,10 +477,13 @@ function render()
 
     var eye = vec3(radius*Math.sin(phi), radius*Math.sin(theta),
          radius*Math.cos(phi));*/
-
-         var eye = vec3(radius*Math.cos(theta)*Math.cos(phi),
-                        radius*Math.cos(theta)*Math.sin(phi),
-                        radius*Math.sin(theta));
+         console.log("theta: "+theta+"\nphi:"+phi);
+         var eyex,eyey,eyez;
+         eyex=radius*Math.cos(phi)*Math.cos(theta);
+         eyey=radius*Math.cos(phi)*Math.sin(theta);
+         eyez=radius*Math.sin(phi);
+         var eye = vec3(eyex,eyey,eyez);
+        console.log("eye: ["+eyex + ","+eyey+","+eyez+"]");
 
 
     var modelViewMatrix = lookAt( eye, at, up );
