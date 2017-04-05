@@ -52,6 +52,7 @@ var radius = 15.0;
 var theta  = 0.0;
 var phi    = 0.0;
 var dr = 5.0 * Math.PI/180.0;
+theta -= phi += 2*dr;
 
 var left = -3.0;
 var right = 3.0;
@@ -119,60 +120,65 @@ window.onload = function init()
     //event listeners for buttons
 
     document.getElementById( "xButton" ).onclick = function () {
-      var planes = [
-        vec3(1,1,1),
-        vec3(0,0,0),
-        vec3(0,0,0)
-      ];
+      var planes = mat3(
+        1,1,1,
+        0,0,0,
+        0,0,0
+      );
       rotate(planes,1);
     };
     document.getElementById( "yButton" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(1,1,1),
-        vec3(0,0,0)
-      ];
+      var planes = mat3(
+        0,0,0,
+        1,1,1,
+        0,0,0
+      );
       rotate(planes,1);
     };
     document.getElementById( "zButton" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(0,0,0),
-        vec3(1,1,1)
-      ];
+      var planes = mat3(
+        0,0,0,
+        0,0,0,
+        1,1,1
+      );
       rotate(planes,1);
     };
     document.getElementById( "nxButton" ).onclick = function () {
-      var planes = [
-        vec3(1,1,1),
-        vec3(0,0,0),
-        vec3(0,0,0)
-      ];
-      rotate(planes,-1);
+      var planes = mat3(
+        1,0,0,
+        0,0,0,
+        0,0,0
+      );(planes,-1);
     };
     document.getElementById( "nyButton" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(1,1,1),
-        vec3(0,0,0)
-      ];
+      var planes = mat3(
+        1,0,0,
+        0,0,0,
+        0,0,0
+      );
       rotate(planes,-1);
     };
     document.getElementById( "nzButton" ).onclick = function () {
-      var planes = [
-        vec3(0,0,0),
-        vec3(0,0,0),
-        vec3(1,1,1)
-      ];
+      var planes = mat3(
+        1,0,0,
+        0,0,0,
+        0,0,0
+      );
       rotate(planes,-1);
     };
 
     document.getElementById( "rplane1" ).onclick = function () {
-      var planes = [
+      /*var planes = [
         vec3(1,0,0),
         vec3(0,0,0),
         vec3(0,0,0)
-      ];
+      ];*/
+      var planes = mat3(
+        1,0,0,
+        0,0,0,
+        0,0,0
+      );
+      //rotate(transpose(planes),1);
       rotate(planes,1);
     };
     document.getElementById( "rplane2" ).onclick = function () {
@@ -242,29 +248,19 @@ window.onload = function init()
 
 
 
-    document.getElementById( "Button1" ).onclick = function () {theta += dr;};
-    document.getElementById( "Button2" ).onclick = function () {theta -= dr;};
-    document.getElementById( "Button3" ).onclick = function () {phi += dr;};
-    document.getElementById( "Button4" ).onclick = function () {phi -= dr;};
+    document.getElementById( "Button1" ).onclick = function () {change_view(true,false,1);};
+    document.getElementById( "Button2" ).onclick = function () {change_view(true,false,-1);};
+    document.getElementById( "Button3" ).onclick = function () {change_view(false,true,1);};
+    document.getElementById( "Button4" ).onclick = function () {change_view(false,true,-1);};
     document.getElementById( "Button7" ).onclick = function () {randomize();};
 
 
     myCube = new Cube();
     myCube.render();
-    animRender();
+    //animRender();
 }
 //creates rubiks cube at the origin
-/*
-  each cubie is rendered one by one.
-  each has an rx ry and rz:
-  r_theta_p = [x,y,z];
-  which can be determined from the table of planar rotations.
-  var r_theta = [
-    vec3(0,0,0),
-    vec3(0,0,0),
-    vec3(0,0,0)
-  ];
-*/
+
 class Cube {
   constructor(){
     this.cubies = [];
@@ -375,24 +371,52 @@ function randomize(){
 
 }
 
+/*
+  a cubie's r_theta is defined from the ORIGINAL position of the cube's planes.
+  we need to keep track of the state of the cubes in the application layer.
+
+  we should be able to say: what cubes are at locations = [l1,l2,l3];
+  where l1 is an x,y,z translation transformation.
+
+  we render each cube one by one, in a set order.
+  each cube's r_theta will be updated every time the matrix rotates.
+
+  depending on the cube's existing rotation, it will behave differently trying to rotate it further.
+
+  when rotating once in x,
+
+*/
 function rotate(planes,arg_sign){
   if(animating==1){
     console.log("cant rotate");
     return;
+  }else{
+    console.log("rotating");
+    r_plane_pick = planes;
+    pos = arg_sign;
+    cube_rotate();
   }
-  r_plane_pick = planes;
-  pos = arg_sign;
-  requestAnimFrame(cube_rotate);
 }
-
+function change_view(theta_arg,phi_arg,sign){
+  if(theta_arg){
+    theta += sign*dr;
+  }
+  if(phi_arg){
+    phi += sign*dr;
+  }
+  if((theta_arg!=false)||(phi_arg!=false)){
+    myCube.render();
+  }
+}
 function cube_rotate(){
   animating=1;
   if(!deg){deg=0.0;}
-  deg += pos*5.0;
+  var inc = pos*10.0;
+  deg += inc;
   for(var i=0;i<r_planes.length;i++){
     for(var j=0;j<r_planes[i].length;j++){
       if(r_plane_pick[i][j]==1){
-        r_planes[i][j] += pos*5.0;
+        r_planes[i][j] += inc;
         if(r_planes[i][j] >= 360) {r_planes[i][j] -= 360;}
         else if(r_planes[i][j] < 0) {r_planes[i][j] += 360;}
       }
@@ -404,14 +428,17 @@ function cube_rotate(){
   }else{
     deg=null;
     animating=0;
-    animRender();
+    console.log(r_planes);
   }
 }
+/*
+  plane rotation ==> plane remapping
 
-function animRender(){
-  myCube.render();
-  requestAnimFrame(animRender);
-}
+  rotate plane 1: equivalence
+
+
+*/
+
 
 function render()
 {
@@ -419,7 +446,6 @@ function render()
     vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
-    //console.log(points[0][0]+" "+points[0][1]+" "+points[0][2]+" "+points[0][3] );
     vPosition = gl.getAttribLocation( program, "vPosition" );
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
