@@ -115,8 +115,6 @@ window.onload = function init()
 
     //event listeners for buttons
     myCube.cube_render();
-    console.log("curr_rot after render: ");
-    console.log(myCube.curr_rot);
 
     document.addEventListener('keydown',keycontrol);
 
@@ -182,7 +180,7 @@ function keycontrol(event){
     }else if(event.keyCode == KEYCODE_h) {
       myCube.curr_rot[2][0]=myCube.curr_rot[2][1]=myCube.curr_rot[2][2]=90;
     }else if(event.keyCode == KEYCODE_r){
-      sign = -1;
+      sign *= -1;
       console.log("sign: "+sign);
     }
 
@@ -199,7 +197,12 @@ function keycontrol(event){
 }
 class Cube {
   constructor(){
-    this.cubies = [];
+    this.cubies=[];
+    this.indices = [];
+    for(var i=0;i<27;i++){
+      this.indices.push(i);
+    }
+
     this.curr_rot = [
       vec3(0,0,0),
       vec3(0,0,0),
@@ -211,71 +214,288 @@ class Cube {
       vec3(0,0,0)
     ];
     this.t = [
-      vec3( -1, -1,  1),
-      vec3(  0, -1,  1),
-      vec3(  1, -1,  1),
-      vec3( -1, -1,  0),
-      vec3(  0, -1,  0),
-      vec3(  1, -1,  0),
       vec3( -1, -1, -1),
-      vec3(  0, -1, -1),
-      vec3(  1, -1, -1),
-      vec3( -1,  0,  1),
-      vec3(  0,  0,  1),
-      vec3(  1,  0,  1),
-      vec3( -1,  0,  0),
-      vec3(  0,  0,  0),
-      vec3(  1,  0,  0),
+      vec3( -1, -1,  0),
+      vec3( -1, -1,  1),
       vec3( -1,  0, -1),
-      vec3(  0,  0, -1),
-      vec3(  1,  0, -1),
-      vec3( -1,  1,  1),
-      vec3(  0,  1,  1),
-      vec3(  1,  1,  1),
-      vec3( -1,  1,  0),
-      vec3(  0,  1,  0),
-      vec3(  1,  1,  0),
+      vec3( -1,  0,  0),
+      vec3( -1,  0,  1),
       vec3( -1,  1, -1),
+      vec3( -1,  1,  0),
+      vec3( -1,  1,  1),
+      vec3(  0, -1, -1),
+      vec3(  0, -1,  0),
+      vec3(  0, -1,  1),
+      vec3(  0,  0, -1),
+      vec3(  0,  0,  0),
+      vec3(  0,  0,  1),
       vec3(  0,  1, -1),
-      vec3(  1,  1, -1)
+      vec3(  0,  1,  0),
+      vec3(  0,  1,  1),
+      vec3(  1, -1, -1),
+      vec3(  1, -1,  0),
+      vec3(  1, -1,  1),
+      vec3(  1,  0, -1),
+      vec3(  1,  0,  0),
+      vec3(  1,  0,  1),
+      vec3(  1,  1, -1),
+      vec3(  1,  1,  0),
+      vec3(  1,  1,  1),
     ];
+
+
     for(var i=0;i<this.t.length;i++){
         var c = new Cubie(this.t[i]);
         this.cubies.push(c);
     }
 
+
+    //console.log("cubies");
+    //console.log(this.cubies);
   }
+
+  /*
   cube_render(){
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     for(var i=0;i<this.cubies.length;i++){
       points = [];
-      for(var j=0;j<this.cubies[i].points.length;j++){
-        points.push(this.cubies[i].points[j]);
+      for(var j=0;j<this.cubies[this.indices[i]].points.length;j++){
+        points.push(this.cubies[this.indices[i]].points[j]);
       }
       r_theta =[];
+      //cant just get rtheta from other shit.
+
       for(var j=0;j<3;j++){
-
         r_theta.push(this.r_planes[j][this.t[i][j]+1]);
-
       }
+      render();
+    }
+  }
+  */
+  cube_render(){
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    for(var i=0;i<this.cubies.length;i++){
+      points = [];
+      for(var j=0;j<this.cubies[this.indices[i]].points.length;j++){
+        points.push(this.cubies[this.indices[i]].points[j]);
+      }
+      r_theta =[];
 
+      for(var j=0;j<3;j++){
+        r_theta.push(this.cubies[this.indices[i]].rot[j]);
+      }
       render();
     }
   }
 
 }
+//this needs to keep track of the rotation of each cube!
+//otherwise how can we select new plane
+//cubies need to update their locations.
 function cube_rotate(){
   if(animating==1){
     console.log("cant rotate");
     return;
   }else{
-    console.log("curr_rot in handler");
-    console.log(myCube.curr_rot);
+    var rot_arr=[
+      vec3(0,0,0),
+      vec3(0,0,0),
+      vec3(0,0,0)
+    ];
+
+    for(var i=0;i<myCube.curr_rot.length;i++){
+      for(var j=0;j<myCube.curr_rot[i].length;j++){
+        rot_arr[i][j] = myCube.curr_rot[i][j];
+      }
+    }
+    for( var i=0;i<rot_arr.length;i++){
+      for(var j=0;j<rot_arr[i].length;j++){
+        if(Math.abs(rot_arr[i][j]) == 90){
+          var inds = plane_inds(i,j,rot_arr);
+          console.log("rotating plane:");
+          console.log(inds);
+          console.log("containing:  ");
+          for(var k=0;k<inds.length;k++){
+
+            var new_rotation = map_rotation(myCube.cubies[myCube.indices[inds[k]]].rot,i,rot_arr[i][j]);
+
+
+            console.log(myCube.indices[inds[k]]);
+            for(var l=0;l<3;l++){
+              myCube.cubies[myCube.indices[inds[k]]].to_rot[l] += new_rotation[l];
+
+            }
+            console.log(myCube.cubies[myCube.indices[inds[k]]].to_rot);
+            //myCube.cubies[myCube.indices[inds[k]]].to_rot[i] += rot_arr[i][j];
+            //console.log(myCube.cubies[myCube.indices[inds[k]]].to_rot);
+          }
+        }
+      }
+    }
+
     cube_rotate_step();
+    console.log("post rotate");
+    console.log(myCube.cubies[0].rot);
+    update_pos(rot_arr);
+
   }
 }
+
+
+
+
+function plane_inds(i,j,rot_arr){
+  var planeno = 3*i + j;
+  var inds=[];
+  var x,y,z;
+  x=y=z=-1;
+  if(planeno==0){x=0;}
+  else if(planeno==1){x=1;}
+  else if(planeno==2){x=2;}
+  else if(planeno==3){y=0;}
+  else if(planeno==4){y=1;}
+  else if(planeno==5){y=2;}
+  else if(planeno==6){z=0;}
+  else if(planeno==7){z=1;}
+  else if(planeno==8){z=2;}
+
+  for(var k=0;k<myCube.t.length;k++){
+    if(x>=0){
+
+      if(myCube.t[k][0]+1 == x){
+        inds.push(k);
+        //myCube.cubies[myCube.indices[k]].rot[0]=rot_arr[i][j];
+      }
+    }else if(y>=0){
+      if(myCube.t[k][1]+1 == y){
+        inds.push(k);
+        //myCube.cubies[myCube.indices[k]].rot[1]=rot_arr[i][j];
+      }
+    }else if(z>=0){
+      if(myCube.t[k][2]+1 == z){
+        inds.push(k);
+        //myCube.cubies[myCube.indices[k]].rot[2]=rot_arr[i][j];
+      }
+    }
+  }
+  return inds;
+}
+
+function update_pos(rot_arr){
+  var inds;
+  for( var i=0;i<rot_arr.length;i++){
+    for(var j=0;j<rot_arr[i].length;j++){
+      if(Math.abs(rot_arr[i][j]) == 90){
+        //console.log(rot_arr);
+        inds = plane_inds(i,j,rot_arr);
+        var shuf1=[];
+        var shuf2=[];
+        shuf1.push(inds[0]);
+        shuf1.push(inds[2]);
+        shuf1.push(inds[8]);
+        shuf1.push(inds[6]);
+        shuf2.push(inds[1]);
+        shuf2.push(inds[5]);
+        shuf2.push(inds[7]);
+        shuf2.push(inds[3]);
+        //console.log("preshuf");
+        //console.log(myCube.indices);
+        shuffle(myCube.indices,shuf1);
+        shuffle(myCube.indices,shuf2);
+        //console.log("postshuf");
+        //console.log(myCube.indices);
+
+      }
+    }
+  }
+}
+/*
+  plane rotation ==> plane remapping
+
+  90 deg x:
+  z=>y ,y=>-z
+  90 deg y:
+  x=>z, z=>-x
+  90 deg z:
+  y=>x,x=>-y
+
+  180 deg x:
+  z=>-z ,y=>-y
+  180 deg y:
+  x=>-x, z=>-z
+  180 deg z:
+  y=>-y,x=>-x
+
+  270 deg x:
+  z=>-y ,y=>z
+  270 deg y:
+  x=>-z, z=>x
+  270 deg z:
+  y=>-x,x=>y
+
+*/
+function map_rotation(curr,axis,degree){
+  var new_rotation = [0,0,0];
+  new_rotation[axis]=degree;
+  if(curr[0]==90){
+    swap(new_rotation,1,2);
+    new_rotation[1] *= -1;
+  }else if(curr[0]==180){
+    new_rotation[1] *= -1;
+    new_rotation[2] *= -1;
+  }else if(curr[0]==270){
+    swap(new_rotation,1,2);
+    new_rotation[2] *= -1;
+  }
+
+  if(curr[1]==90){
+    swap(new_rotation,0,2);
+    new_rotation[0] *= -1;
+  }else if(curr[1]==180){
+    new_rotation[0] *= -1;
+    new_rotation[2] *= -1;
+  }else if(curr[1]==270){
+    swap(new_rotation,0,2);
+    new_rotation[2] *= -1;
+  }
+
+  if(curr[2]==90){
+    swap(new_rotation,0,1);
+    new_rotation[1] *= -1;
+  }else if(curr[2]==180){
+    new_rotation[0] *= -1;
+    new_rotation[1] *= -1;
+  }else if(curr[2]==270){
+    swap(new_rotation,0,1);
+    new_rotation[2] *= -1;
+  }
+  return new_rotation;
+}
+function swap(arr,x,y){
+  var s = arr[x];
+  arr[x]=arr[y];
+  arr[y]=s;
+}
+function shuffle(arr,inds){
+  var s=arr[inds[0]];
+  var s2;
+  for(var i=0;i<inds.length;i++){
+    var n=i+1;
+    if(n==inds.length){
+      n=0;
+    }
+
+    s2=arr[inds[n]];
+    arr[inds[n]]=s;
+    s=s2;
+
+  }
+}
+
+
+/*
 function cube_rotate_step(){
-  console.log("animating "+animating);
+  //console.log("animating "+animating);
   animating=1;
   var inc=10;
   var nonzero=false;
@@ -288,7 +508,9 @@ function cube_rotate_step(){
         }else if((myCube.curr_rot[i][j] > 0)&&(inc<0)){
           inc *= -1;
         }
-        myCube.r_planes[i][j] += inc;
+        //myCube.r_planes[i][j] += inc;
+
+
         myCube.curr_rot[i][j] -= inc;
         if(myCube.r_planes[i][j] >= 360) {myCube.r_planes[i][j] -= 360;}
         else if(myCube.r_planes[i][j] < 0) {myCube.r_planes[i][j] += 360;}
@@ -300,9 +522,43 @@ function cube_rotate_step(){
     requestAnimFrame(cube_rotate_step);
   }else{
     animating=0;
-    console.log("done nimating");
+    console.log("done animating");
   }
 }
+*/
+
+
+function cube_rotate_step(){
+  //console.log("animating "+animating);
+  animating=1;
+  var inc=10;
+  var nonzero =false;
+  for(var i=0;i<myCube.cubies.length;i++){
+    for(var j=0;j<3;j++){
+      if(myCube.cubies[i].to_rot[j] != 0){
+        nonzero=true;
+        if(((myCube.cubies[i].to_rot[j] < 0)&&(inc>0))
+        ||((myCube.cubies[i].to_rot[j] > 0)&&(inc<0))){
+          inc *= -1;
+        }
+        myCube.cubies[i].rot[j] += inc;
+        myCube.cubies[i].to_rot[j] -= inc;
+
+        if(myCube.cubies[i].rot[j] >= 360){myCube.cubies[i].rot[j] -= 360;}
+        if(myCube.cubies[i].rot[j] < 0){myCube.cubies[i].rot[j] += 360;}
+      }
+    }
+  }
+
+  if(nonzero){
+    myCube.cube_render();
+    requestAnimFrame(cube_rotate_step);
+  }else{
+    animating=0;
+    //console.log("done animating");
+  }
+}
+
 //creates subcube at optional pos or origin
 /// try to make inner faces black.
 class Cubie {
@@ -337,6 +593,9 @@ class Cubie {
         colors.push(vertexColors[a]);
       }
       constructor(x,y,z){
+        this.rot = [0,0,0];
+        this.to_rot = [0,0,0];
+        this.loc = vec3(x,y,z);
         this.points = [];
         this.quad( 1, 0, 3, 2 );
         this.quad( 2, 3, 7, 6 );
@@ -374,35 +633,6 @@ function change_view(theta_arg,phi_arg,sign){
 
 
 
-/*
-  plane rotation ==> plane remapping
-
-  90 deg x:
-  z=>y ,y=>-z
-  90 deg y:
-  x=>z, z=>-x
-  90 deg z:
-  y=>x,x=>-y
-
-  180 deg x:
-  z=>-z ,y=>-y
-  180 deg y:
-  x=>-x, z=>-z
-  180 deg z:
-  y=>-y,x=>-x
-
-  270 deg x:
-  z=>-y ,y=>z
-  270 deg y:
-  x=>-z, z=>x
-  270 deg z:
-  y=>-x,x=>y
-
-
-
-
-
-*/
 
 
 function render()
@@ -431,7 +661,7 @@ function render()
          var eye = vec3(eyex,eyey,eyez);
         //console.log("eye: ["+eyex + ","+eyey+","+eyez+"]");
 
-//console.log("whattup!!");
+
     var modelViewMatrix = lookAt( eye, at, up );
     var projectionMatrix = ortho( left, right, bottom, ytop, near, far );
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
