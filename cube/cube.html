@@ -9,7 +9,7 @@ uniform mat4 projectionMatrix;
 
 //attribute  vec4 vColor;
 //varying vec4 fColor;
-
+uniform vec3 r_axis;
 uniform vec3 r_theta;
 void main()
 {
@@ -34,18 +34,23 @@ void main()
 		    -s.z,  c.z, 0.0, 0.0,
 		    0.0,  0.0, 1.0, 0.0,
 		    0.0,  0.0, 0.0, 1.0 );
+        /*
+        fColor = vColor;
+        gl_Position = rz * ry * rx * vPosition;
+        gl_Position.z = -gl_Position.z;
 
-    //fColor = vColor;
-    //gl_Position = rz * ry * rx * vPosition;
+        */
+    if(r_axis[2]==1.0){
 
+      gl_Position = ry*rz*rx*vPosition;
 
-    gl_Position = projectionMatrix*modelViewMatrix*rz*ry*rx*vPosition;
-    //gl_Position.z = -gl_Position.z;
+    }else{
 
+      gl_Position = rz*ry*rx*vPosition;
 
+    }
+    gl_Position = projectionMatrix*modelViewMatrix*gl_Position;
 
-  //  gl_Position = modelViewMatrix*vPosition;
-    //gl_Position = projectionMatrix*rz*ry*rx*gl_Position;
 }
 </script>
 

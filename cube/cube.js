@@ -26,6 +26,7 @@ var yAxis = 1;
 var zAxis = 2;
 
 var axis = 0;
+var r_axis = [0,0,0];
 var r_theta = [0,0,0];
 
 var program;
@@ -33,7 +34,7 @@ var program;
 var sign=1;
 var animating =null;
 
-var r_thetaLoc;
+var r_thetaLoc,r_axisLoc;
 var r_planeLoc;
 var NumVertices = VERTICES_PER_CUBIE*NUM_CUBIE;
 
@@ -69,7 +70,7 @@ var myCube;
 window.onload = function init()
 {
     canvas = document.getElementById( "gl-canvas" );
-
+    r_axis =[1,0,0];
     gl = WebGLUtils.setupWebGL( canvas );
     if ( !gl ) { alert( "WebGL isn't available" ); }
 
@@ -107,6 +108,7 @@ window.onload = function init()
     gl.enableVertexAttribArray( vPosition );
 
     r_thetaLoc = gl.getUniformLocation(program, "r_theta");
+    r_axisLoc = gl.getUniformLocation(program, "r_axis");
     fColor = gl.getUniformLocation(program, "fColor");
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
@@ -263,10 +265,12 @@ class Cube {
         points.push(this.cubies[this.indices[i]].points[j]);
       }
       r_theta =[];
-
+      r_axis = [];
       for(var j=0;j<3;j++){
         r_theta.push(this.cubies[this.indices[i]].rot[j]);
+        r_axis.push(this.cubies[this.indices[i]].r_axis[j]);
       }
+
       render();
     }
   }
@@ -298,14 +302,23 @@ function cube_rotate(){
           console.log("rotating plane:");
           console.log(inds);
           console.log("containing:  ");
+
+
+
+            //console.log("r_axis:  ");
+          //console.log(r_axis);
           for(var k=0;k<inds.length;k++){
             var new_rotation = map_rotation(myCube.cubies[myCube.indices[inds[k]]].rot,i,rot_arr[i][j]);
             console.log(myCube.indices[inds[k]]);
             for(var l=0;l<3;l++){
+
               myCube.cubies[myCube.indices[inds[k]]].to_rot[l] += new_rotation[l];
+              myCube.cubies[myCube.indices[inds[k]]].r_axis = [0,0,0];
+              //sign?
+              myCube.cubies[myCube.indices[inds[k]]].r_axis[l] = 1;
             }
-            console.log(myCube.cubies[myCube.indices[inds[k]]].to_rot);
-            console.log(myCube.cubies[myCube.indices[inds[k]]].rot);
+
+            console.log(myCube.cubies[myCube.indices[inds[k]]].rot);console.log(myCube.cubies[myCube.indices[inds[k]]].to_rot);
             //myCube.cubies[myCube.indices[inds[k]]].to_rot[i] += rot_arr[i][j];
             //console.log(myCube.cubies[myCube.indices[inds[k]]].to_rot);
           }
@@ -314,7 +327,7 @@ function cube_rotate(){
           var shuf2=[];
           var seq1 = [6,8,2,0];
           var seq2 = [5,1,3,7];
-          console.log("AXIS: "+i);
+          //console.log("AXIS: "+i);
           var m = 1;
           if(i==1){
             m *=-1;
@@ -335,19 +348,19 @@ function cube_rotate(){
               shuf2.push(inds[seq2[k]]);
             }
           }
-          console.log("preshuf");
-          console.log(myCube.indices);
+          //console.log("preshuf");
+          //console.log(myCube.indices);
           shuffle(myCube.indices,shuf1);
           shuffle(myCube.indices,shuf2);
-          console.log("postshuf");
-          console.log(myCube.indices);
+          //console.log("postshuf");
+          //console.log(myCube.indices);
         }
       }
     }
 
     cube_rotate_step();
-    console.log("post rotate");
-    console.log(myCube.cubies[0].rot);
+    //console.log("post rotate");
+    //console.log(myCube.cubies[0].rot);
     //update_pos(rot_arr);
 
   }
@@ -464,6 +477,7 @@ function map_rotation(curr,axis,degree){
   270 deg z:
   y=>-x,x=>y*/
 
+  /*
   if(curr[0]==90){
     swap(new_rotation,1,2);
     new_rotation[2] *= -1;
@@ -474,6 +488,8 @@ function map_rotation(curr,axis,degree){
     swap(new_rotation,1,2);
     new_rotation[1] *= -1;
   }
+  */
+
   if(curr[1]==90){
     swap(new_rotation,0,2);
     new_rotation[0] *= -1;
@@ -590,6 +606,7 @@ class Cubie {
         this.rot = [0,0,0];
         this.to_rot = [0,0,0];
         this.loc = vec3(x,y,z);
+        this.r_axis = [1,0,0];
         this.points = [];
         this.quad( 1, 0, 3, 2 );
         this.quad( 2, 3, 7, 6 );
@@ -663,6 +680,8 @@ function render()
 
 
     gl.uniform3fv(r_thetaLoc, r_theta);
+
+        gl.uniform3fv(r_axisLoc, r_axis);
 
     //6 faces 4 points each
     for(var i=0; i<points.length; i+=4) {
