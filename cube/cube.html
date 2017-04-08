@@ -37,8 +37,15 @@ void main()
 
     //fColor = vColor;
     //gl_Position = rz * ry * rx * vPosition;
-    //gl_Position.z = -gl_Position.z;
+
+
     gl_Position = projectionMatrix*modelViewMatrix*rz*ry*rx*vPosition;
+    //gl_Position.z = -gl_Position.z;
+
+
+
+  //  gl_Position = modelViewMatrix*vPosition;
+    //gl_Position = projectionMatrix*rz*ry*rx*gl_Position;
 }
 </script>
 

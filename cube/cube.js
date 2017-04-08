@@ -166,13 +166,13 @@ function keycontrol(event){
       myCube.curr_rot[1][2]=90;
     }
     else if(event.keyCode == KEYCODE_z) {
-      myCube.curr_rot[2][0]=90;
+      myCube.curr_rot[2][2]=90;
     }
     else if(event.keyCode == KEYCODE_x) {
       myCube.curr_rot[2][1]=90;
     }
     else if(event.keyCode == KEYCODE_c) {
-      myCube.curr_rot[2][2]=90;
+      myCube.curr_rot[2][0]=90;
     }else if(event.keyCode == KEYCODE_f) {
       myCube.curr_rot[0][0]=myCube.curr_rot[0][1]=myCube.curr_rot[0][2]=90;
     }else if(event.keyCode == KEYCODE_g) {
@@ -254,24 +254,7 @@ class Cube {
     //console.log(this.cubies);
   }
 
-  /*
-  cube_render(){
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    for(var i=0;i<this.cubies.length;i++){
-      points = [];
-      for(var j=0;j<this.cubies[this.indices[i]].points.length;j++){
-        points.push(this.cubies[this.indices[i]].points[j]);
-      }
-      r_theta =[];
-      //cant just get rtheta from other shit.
 
-      for(var j=0;j<3;j++){
-        r_theta.push(this.r_planes[j][this.t[i][j]+1]);
-      }
-      render();
-    }
-  }
-  */
   cube_render(){
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     for(var i=0;i<this.cubies.length;i++){
@@ -316,19 +299,48 @@ function cube_rotate(){
           console.log(inds);
           console.log("containing:  ");
           for(var k=0;k<inds.length;k++){
-
             var new_rotation = map_rotation(myCube.cubies[myCube.indices[inds[k]]].rot,i,rot_arr[i][j]);
-
-
             console.log(myCube.indices[inds[k]]);
             for(var l=0;l<3;l++){
               myCube.cubies[myCube.indices[inds[k]]].to_rot[l] += new_rotation[l];
-
             }
             console.log(myCube.cubies[myCube.indices[inds[k]]].to_rot);
+            console.log(myCube.cubies[myCube.indices[inds[k]]].rot);
             //myCube.cubies[myCube.indices[inds[k]]].to_rot[i] += rot_arr[i][j];
             //console.log(myCube.cubies[myCube.indices[inds[k]]].to_rot);
           }
+          //console.log(rot_arr);
+          var shuf1=[];
+          var shuf2=[];
+          var seq1 = [6,8,2,0];
+          var seq2 = [5,1,3,7];
+          console.log("AXIS: "+i);
+          var m = 1;
+          if(i==1){
+            m *=-1;
+          }
+          if(rot_arr[i][j]*m==90){
+            for(var k=0;k<seq1.length;k++){
+              shuf1.push(inds[seq1[k]]);
+            }
+            for(var k=0;k<seq2.length;k++){
+              shuf2.push(inds[seq2[k]]);
+            }
+
+          }else if(rot_arr[i][j]*m==-90){
+            for(var k=seq1.length-1;k>=0;k--){
+              shuf1.push(inds[seq1[k]]);
+            }
+            for(var k=seq1.length-1;k>=0;k--){
+              shuf2.push(inds[seq2[k]]);
+            }
+          }
+          console.log("preshuf");
+          console.log(myCube.indices);
+          shuffle(myCube.indices,shuf1);
+          shuffle(myCube.indices,shuf2);
+          console.log("postshuf");
+          console.log(myCube.indices);
         }
       }
     }
@@ -336,7 +348,7 @@ function cube_rotate(){
     cube_rotate_step();
     console.log("post rotate");
     console.log(myCube.cubies[0].rot);
-    update_pos(rot_arr);
+    //update_pos(rot_arr);
 
   }
 }
@@ -388,22 +400,33 @@ function update_pos(rot_arr){
       if(Math.abs(rot_arr[i][j]) == 90){
         //console.log(rot_arr);
         inds = plane_inds(i,j,rot_arr);
+        console.log(inds);
         var shuf1=[];
         var shuf2=[];
-        shuf1.push(inds[0]);
-        shuf1.push(inds[2]);
-        shuf1.push(inds[8]);
-        shuf1.push(inds[6]);
-        shuf2.push(inds[1]);
-        shuf2.push(inds[5]);
-        shuf2.push(inds[7]);
-        shuf2.push(inds[3]);
-        //console.log("preshuf");
-        //console.log(myCube.indices);
+        var seq1 = [6,8,2,0];
+        var seq2 = [5,1,3,7];
+        if(rot_arr[i][j]==90){
+          for(var k=0;k<seq1.length;k++){
+            shuf1.push(inds[seq1[k]]);
+          }
+          for(var k=0;k<seq2.length;k++){
+            shuf2.push(inds[seq2[k]]);
+          }
+
+        }else if(rot_arr[i][j]==-90){
+          for(var k=seq1.length-1;k>=0;k++){
+            shuf1.push(inds[seq1[k]]);
+          }
+          for(var k=seq1.length-1;k>=0;k++){
+            shuf2.push(inds[seq2[k]]);
+          }
+        }
+        console.log("preshuf");
+        console.log(myCube.indices);
         shuffle(myCube.indices,shuf1);
         shuffle(myCube.indices,shuf2);
-        //console.log("postshuf");
-        //console.log(myCube.indices);
+        console.log("postshuf");
+        console.log(myCube.indices);
 
       }
     }
@@ -412,42 +435,45 @@ function update_pos(rot_arr){
 /*
   plane rotation ==> plane remapping
 
-  90 deg x:
-  z=>y ,y=>-z
-  90 deg y:
-  x=>z, z=>-x
-  90 deg z:
-  y=>x,x=>-y
 
-  180 deg x:
-  z=>-z ,y=>-y
-  180 deg y:
-  x=>-x, z=>-z
-  180 deg z:
-  y=>-y,x=>-x
 
-  270 deg x:
-  z=>-y ,y=>z
-  270 deg y:
-  x=>-z, z=>x
-  270 deg z:
-  y=>-x,x=>y
+
 
 */
 function map_rotation(curr,axis,degree){
   var new_rotation = [0,0,0];
   new_rotation[axis]=degree;
+  /*90 deg x:
+  z=>y ,y=>-z
+  180 deg x:
+  z=>-z ,y=>-y
+  270 deg x:
+  z=>-y ,y=>z*/
+  /*
+  90 deg y:
+  x=>z, z=>-x
+  180 deg y:
+  x=>-x, z=>-z
+  270 deg y:
+  x=>-z, z=>x*/
+  /*
+  90 deg z:
+  y=>x,x=>-y
+  180 deg z:
+  y=>-y,x=>-
+  270 deg z:
+  y=>-x,x=>y*/
+
   if(curr[0]==90){
     swap(new_rotation,1,2);
-    new_rotation[1] *= -1;
+    new_rotation[2] *= -1;
   }else if(curr[0]==180){
     new_rotation[1] *= -1;
     new_rotation[2] *= -1;
   }else if(curr[0]==270){
     swap(new_rotation,1,2);
-    new_rotation[2] *= -1;
+    new_rotation[1] *= -1;
   }
-
   if(curr[1]==90){
     swap(new_rotation,0,2);
     new_rotation[0] *= -1;
@@ -458,7 +484,6 @@ function map_rotation(curr,axis,degree){
     swap(new_rotation,0,2);
     new_rotation[2] *= -1;
   }
-
   if(curr[2]==90){
     swap(new_rotation,0,1);
     new_rotation[1] *= -1;
@@ -467,8 +492,9 @@ function map_rotation(curr,axis,degree){
     new_rotation[1] *= -1;
   }else if(curr[2]==270){
     swap(new_rotation,0,1);
-    new_rotation[2] *= -1;
+    new_rotation[0] *= -1;
   }
+
   return new_rotation;
 }
 function swap(arr,x,y){
@@ -493,45 +519,12 @@ function shuffle(arr,inds){
 }
 
 
-/*
-function cube_rotate_step(){
-  //console.log("animating "+animating);
-  animating=1;
-  var inc=10;
-  var nonzero=false;
-  for(var i=0;i<myCube.curr_rot.length;i++){
-    for(var j=0;j<myCube.curr_rot[i].length;j++){
-      if(myCube.curr_rot[i][j] != 0){
-        nonzero=true;
-        if((myCube.curr_rot[i][j] < 0)&&(inc>0)){
-          inc *= -1;
-        }else if((myCube.curr_rot[i][j] > 0)&&(inc<0)){
-          inc *= -1;
-        }
-        //myCube.r_planes[i][j] += inc;
-
-
-        myCube.curr_rot[i][j] -= inc;
-        if(myCube.r_planes[i][j] >= 360) {myCube.r_planes[i][j] -= 360;}
-        else if(myCube.r_planes[i][j] < 0) {myCube.r_planes[i][j] += 360;}
-      }
-    }
-  }
-  if(nonzero){
-    myCube.cube_render();
-    requestAnimFrame(cube_rotate_step);
-  }else{
-    animating=0;
-    console.log("done animating");
-  }
-}
-*/
 
 
 function cube_rotate_step(){
   //console.log("animating "+animating);
   animating=1;
-  var inc=10;
+  var inc=2;
   var nonzero =false;
   for(var i=0;i<myCube.cubies.length;i++){
     for(var j=0;j<3;j++){
@@ -555,6 +548,7 @@ function cube_rotate_step(){
     requestAnimFrame(cube_rotate_step);
   }else{
     animating=0;
+    //console.log(myCube.indices)
     //console.log("done animating");
   }
 }
