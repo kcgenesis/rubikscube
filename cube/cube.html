@@ -6,18 +6,11 @@
 attribute vec4 vPosition;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
-
-//attribute  vec4 vColor;
-//varying vec4 fColor;
 uniform vec3 r_axis;
-uniform vec3 r_theta;
+uniform mat4 r_theta;
 void main()
 {
-    // Compute the sines and cosines of theta for each of
-    //   the three axes in one computation.
-    vec3 angles = radians( r_theta );
-    vec3 c = cos( angles );
-    vec3 s = sin( angles );
+    /*
     // Remeber: thse matrices are column-major
     mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
 		    0.0,  c.x,  s.x, 0.0,
@@ -33,32 +26,16 @@ void main()
     mat4 rz = mat4( c.z, s.z, 0.0, 0.0,
 		    -s.z,  c.z, 0.0, 0.0,
 		    0.0,  0.0, 1.0, 0.0,
-		    0.0,  0.0, 0.0, 1.0 );
-        /*
-        fColor = vColor;
-        gl_Position = rz * ry * rx * vPosition;
-        gl_Position.z = -gl_Position.z;
+		    0.0,  0.0, 0.0, 1.0 );*/
 
-        */
-    if(r_axis[2]==1.0){
-
-      gl_Position = ry*rz*rx*vPosition;
-
-    }else{
-
-      gl_Position = rz*ry*rx*vPosition;
-
-    }
+    gl_Position = r_theta*vPosition;
     gl_Position = projectionMatrix*modelViewMatrix*gl_Position;
-
 }
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 
 precision mediump float;
-
-//varying vec4 fColor;
 uniform vec4 fColor;
 
 void
