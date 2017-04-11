@@ -10,24 +10,6 @@ uniform vec3 r_axis;
 uniform mat4 r_theta;
 void main()
 {
-    /*
-    // Remeber: thse matrices are column-major
-    mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
-		    0.0,  c.x,  s.x, 0.0,
-		    0.0, -s.x,  c.x, 0.0,
-		    0.0,  0.0,  0.0, 1.0 );
-
-    mat4 ry = mat4( c.y, 0.0, -s.y, 0.0,
-		    0.0, 1.0,  0.0, 0.0,
-		    s.y, 0.0,  c.y, 0.0,
-		    0.0, 0.0,  0.0, 1.0 );
-
-
-    mat4 rz = mat4( c.z, s.z, 0.0, 0.0,
-		    -s.z,  c.z, 0.0, 0.0,
-		    0.0,  0.0, 1.0, 0.0,
-		    0.0,  0.0, 0.0, 1.0 );*/
-
     gl_Position = r_theta*vPosition;
     gl_Position = projectionMatrix*modelViewMatrix*gl_Position;
 }
@@ -48,39 +30,52 @@ main()
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="../Common/FileSaver.js"></script>
 <script type="text/javascript" src="cube.js"></script>
 
 <body>
 <canvas id="gl-canvas" width="512" height="512">
 Oops ... your browser doesn't support the HTML5 canvas element
 </canvas>
-
 <p></p>
-
-<button class="axisbutton" id= "xButton">Rotate X 90</button>
-<button class="axisbutton" id= "yButton">Rotate Y 90</button>
-<button class="axisbutton" id= "zButton">Rotate Z 90</button>
+<h1 id="issolved"></h1>
 <p></p>
-<button class="axisbutton" id= "nxButton">Rotate X -90</button>
-<button class="axisbutton" id= "nyButton">Rotate Y -90</button>
-<button class="axisbutton" id= "nzButton">Rotate Z -90</button>
-<p></p>
+<p>
+Keyboard Controls:<br>
+Reverse Rotation: R <br>
+Rotate Planes:<br>
+X Planes: Q,W,E<br>
+Y Planes: A,S,D<br>
+Z Planes: Z,X,C<br>
+Rotate Cube:<br>
+X Plane:F<br>
+Y Plane:G<br>
+Z Plane:H<br>
+</p>
+<!--
 <button id = "Button1">Increase theta</button>
 <button id = "Button2">Decrease theta</button>
 <button id = "Button3">Increase phi</button>
 <button id = "Button4">Decrease phi</button>
+-->
 <p></p>
-<button id = "rplane1">Rotate Plane 1 90</button>
-<button id = "rplane2">Rotate Plane 2 90</button>
-<button id = "rplane3">Rotate Plane 3 90</button>
-<button id = "rplane4">Rotate Plane 4 90</button>
-<button id = "rplane5">Rotate Plane 5 90</button>
-<button id = "rplane6">Rotate Plane 6 90</button>
-<button id = "rplane7">Rotate Plane 7 90</button>
-<button id = "rplane8">Rotate Plane 8 90</button>
-<button id = "rplane9">Rotate Plane 9 90</button>
-<p></p>
-<button id = "Button7">Randomize</button>
+Number of Random Rotations:<br>
+<input id="rot_num_input" type="text" name="rot_num"><br>
+<button id = "Randomize">Randomize</button>
 
+<p></p>
+Load:
+<input type="file" id="files" name="file" />
+<!--<input type="file" id="files" name="files[]" multiple />-->
+<div id="byte_range"></div>
+<div id="byte_content"></div>
+
+<output id="list"></output>
+
+<p></p>
+<button id = "Save">Save</button>
+
+<p></p>
+<button id = "Reset">Reset</button>
 </body>
 </html>
