@@ -54,10 +54,9 @@ var bottom = -3.0;
 var modeViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
 var vBuffer,vPosition;
-var rotnum =0;
+var rotnum = 0;
 var myCube;
-window.onload = function init()
-{
+window.onload = function init(){
     canvas = document.getElementById( "gl-canvas" );
     r_axis =[1,0,0];
     gl = WebGLUtils.setupWebGL( canvas );
@@ -98,20 +97,10 @@ window.onload = function init()
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-
-
     //event listeners for buttons
     myCube.cube_render();
-
     document.addEventListener('keydown',keycontrol);
-    /*
-    document.getElementById( "Button1" ).onclick = function () {change_view(true,false,1);};
-    document.getElementById( "Button2" ).onclick = function () {change_view(true,false,-1);};
-    document.getElementById( "Button3" ).onclick = function () {change_view(false,true,1);};
-    document.getElementById( "Button4" ).onclick = function () {change_view(false,true,-1);};
-    */
     document.getElementById( "Randomize" ).onclick = function () {
-      //console.log(rotnum);
       if((rotnum==0)||(rotnum==NaN)){
         if(document.getElementById("rot_num_input").value != ''){
           rotnum = parseInt(document.getElementById("rot_num_input").value);
@@ -130,8 +119,6 @@ window.onload = function init()
     } else {
       alert('The File APIs are not fully supported in this browser.');
     }
-
-
     document.getElementById( "Reset" ).onclick = function () {reset();};
 }
 
@@ -166,60 +153,42 @@ function keycontrol(event){
      ];
     if(event.keyCode == KEYCODE_q) {
       myCube.curr_rot[0][0]=90;
-
     }
     else if(event.keyCode == KEYCODE_w) {
       myCube.curr_rot[0][1]=90;
-
     }
     else if(event.keyCode == KEYCODE_e) {
       myCube.curr_rot[0][2]=90;
-      //rplane(myCube.curr_rot,3);
     }
     else if(event.keyCode == KEYCODE_a) {
       myCube.curr_rot[1][0]=90;
-      //rplane(myCube.curr_rot,4);
     }
     else if(event.keyCode == KEYCODE_s) {
       myCube.curr_rot[1][1]=90;
-      //rplane(myCube.curr_rot,5);
     }
     else if(event.keyCode == KEYCODE_d) {
       myCube.curr_rot[1][2]=90;
-      //rplane(myCube.curr_rot,6);
     }
     else if(event.keyCode == KEYCODE_z) {
       myCube.curr_rot[2][2]=90;
-      //rplane(myCube.curr_rot,7);
     }
     else if(event.keyCode == KEYCODE_x) {
       myCube.curr_rot[2][1]=90;
-      //rplane(myCube.curr_rot,8);
     }
     else if(event.keyCode == KEYCODE_c) {
       myCube.curr_rot[2][0]=90;
-      //rplane(myCube.curr_rot,9);
     }else if(event.keyCode == KEYCODE_f) {
       myCube.curr_rot[0][0]=90;
       myCube.curr_rot[0][1]=90;
       myCube.curr_rot[0][2]=90;
-      //rplane(myCube.curr_rot,1);
-      //rplane(myCube.curr_rot,2);
-      //rplane(myCube.curr_rot,3);
     }else if(event.keyCode == KEYCODE_g) {
       myCube.curr_rot[1][0]=90;
       myCube.curr_rot[1][1]=90;
       myCube.curr_rot[1][2]=90;
-      //rplane(myCube.curr_rot,4);
-      //rplane(myCube.curr_rot,5);
-      //rplane(myCube.curr_rot,6);
     }else if(event.keyCode == KEYCODE_h) {
       myCube.curr_rot[2][0]=90;
       myCube.curr_rot[2][1]=90;
       myCube.curr_rot[2][2]=90;
-      //rplane(myCube.curr_rot,7);
-      //rplane(myCube.curr_rot,8);
-      //rplane(myCube.curr_rot,9);
     }else if(event.keyCode == KEYCODE_r){
       sign *= -1;
       console.log("sign: "+sign);
@@ -280,12 +249,10 @@ class Cube {
   }
 
   isSolved(){
-
-
     var solved=false;
     var indices = new Array(10);
-    for(var i=0;i<3;i++){ //axis
-      for(var j=0;j<3;j++){ //degrees
+    for(var i=0;i<3;i++){
+      for(var j=0;j<3;j++){
         indices[i*3 +j] = new Array();
         for(var k=0;k<27;k++){
           indices[i*3 +j].push(k);
@@ -307,23 +274,16 @@ class Cube {
         }
       }
     }
-
     indices[9] = new Array();
     for(var i=0;i<27;i++){
       indices[9].push(i);
     }
-    //top = light blue
-    //left = yellow
-    //center = dark blue
-    console.log(indices);
     for(var i=0;i<indices.length;i++){
       if(arraysEqual(indices[i],myCube.indices)){
           solved = true;
       }
     }
-
     return solved;
-
   }
   cube_render(){
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -375,21 +335,16 @@ function update_pos(indices,i,j,curr_rot){
   //return indices;
 }
 
-
 function cube_rotate(){
   if(animating==1){
-    console.log("cant rotate");
+    //console.log("already rotating");
     return;
   }else{
     for( var i=0;i<myCube.curr_rot.length;i++){
       for(var j=0;j<myCube.curr_rot[i].length;j++){
         if(Math.abs(myCube.curr_rot[i][j]) == 90){
           var inds = plane_inds(i,j);
-          //console.log("before:");
-          //console.log(myCube.indices);
           update_pos(myCube.indices,i,j,myCube.curr_rot);
-        //  console.log("after:");
-      //v    console.log(myCube.indices);
           for(var k=0;k<inds.length;k++){
             for(var l=0;l<3;l++){
               if(l==i){
@@ -448,6 +403,7 @@ function plane_inds(i,j){
   }
   return inds;
 }
+
 function map_rotation(curr,axis,degree){
   var new_rotation = [0,0,0];
   new_rotation[axis]=degree;
@@ -532,7 +488,6 @@ function shuffle(arr,inds){
 }
 
 function cube_rotate_step(){
-  //console.log("animating "+animating);
   animating=1;
   var inc=9 ;
   var nonzero =false;
@@ -576,12 +531,9 @@ function cube_rotate_step(){
     requestAnimFrame(cube_rotate_step);
   }else{
     animating=0;
-    //console.log(myCube.indices)
-    //console.log("done animating");
   }
 }
 
-/// try to make inner faces black.
 class Cubie {
       quad(a,b,c,d){
         var vertices = [
@@ -604,12 +556,9 @@ class Cubie {
             [ 0.0, 1.0, 1.0, 1.0 ],  // cyan
             [ 1.0, 1.0, 1.0, 1.0 ]   // white
         ];
-        //var indices = [ a, b, c, a, c, d ];
         var indices = [ a, b, c, d ];
         for ( var i = 0; i < indices.length; ++i ) {
             this.points.push( vertices[indices[i]] );
-            //colors.push( vertexColors[indices[i]] );
-            // for solid colored faces use
         }
         colors.push(vertexColors[a]);
       }
@@ -634,9 +583,6 @@ class Cubie {
     }
 }
 
-//apply a number of random rotations to the cube
-
-
 function randomize(){
   if(animating==1){
     setTimeout(randomize,50);
@@ -659,7 +605,8 @@ function randomize(){
     console.log("Done randomizing!");
   }
 }
-//stringify myCube
+
+//--load/save functions
 function save(){
   var blob = new Blob([JSON.stringify(myCube)], {type: "text/plain;charset=utf-8"});
   saveAs(blob, "cubestate.json");
@@ -668,15 +615,6 @@ function reset(){
   myCube = new Cube();
   myCube.cube_render();
 }
-//load function
-/*
-
-load:
->cubies
->>rot
->>loc
->indices
-*/
 function IsJsonString(str) {
     try {
         JSON.parse(str);
@@ -686,36 +624,20 @@ function IsJsonString(str) {
     return true;
 }
 function handleFileSelect(evt) {
-    var files = evt.target.files; // FileList object
+    var files = evt.target.files;
     if (!files.length) {
       alert('Please select a file!');
       return;
     }
-    // files is a FileList of File objects. List some properties.
     var output = [];
     var f = files[0];
-    //console.log(f.type);
-    /*if (!f.type.match('json.*')) {
-      //alert('Json files only!');
-      console.log("json files only!");
-      return;
-    }*/
-
     var start = 0;
     var stop = f.size-1;
     var reader = new FileReader();
 
-    // If we use onloadend, we need to check the readyState.
     reader.onloadend = function(evt) {
       if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-        /*
-        document.getElementById('byte_content').textContent = evt.target.result;
-        document.getElementById('byte_range').textContent =
-            ['Read bytes: ', start + 1, ' - ', stop + 1,
-             ' of ', f.size, ' byte file'].join('');
-             */
         var jsonArr=[];
-
         for(var i=0;i<evt.target.result.length;i++){
           jsonArr.push(evt.target.result[i]);
         }
@@ -729,9 +651,6 @@ function handleFileSelect(evt) {
           return;
         }
         var loadedCube = JSON.parse(jsonStr);
-
-        //console.log("loaded cube: ");
-        //console.log(loadedCube);
         for(var i=0;i<myCube.cubies.length;i++){
           for(var j=0;j<myCube.cubies[i].rot.length;j++){
             for(var k=0;k<myCube.cubies[i].rot[j].length;k++){
@@ -749,17 +668,11 @@ function handleFileSelect(evt) {
       }
     };
 
-
     output.push(f.size, ' bytes, last modified: ',
-      f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a');
-      //read file
-
+    f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a');
     document.getElementById('list').innerHTML = output.join('');
-
     var blob = f.slice(start, stop + 1);
     reader.readAsBinaryString(blob);
-
-
 }
 
 function change_view(theta_arg,phi_arg,sign){
@@ -774,10 +687,7 @@ function change_view(theta_arg,phi_arg,sign){
   }
 }
 
-function render()
-{
-
-    //gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+function render(){
     vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
@@ -785,31 +695,17 @@ function render()
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
 
-    /*
-    var eye = vec3( radius*Math.sin(theta)*Math.cos(phi),
-                    radius*Math.sin(theta)*Math.sin(phi),
-                    radius*Math.cos(theta));
-
-    var eye = vec3(radius*Math.sin(phi), radius*Math.sin(theta),
-         radius*Math.cos(phi));*/
-         //console.log("theta: "+theta+"\nphi:"+phi);
-         var eyex,eyey,eyez;
-         eyex=radius*Math.cos(phi)*Math.cos(theta);
-         eyey=radius*Math.cos(phi)*Math.sin(theta);
-         eyez=radius*Math.sin(phi);
-         var eye = vec3(eyex,eyey,eyez);
-        //console.log("eye: ["+eyex + ","+eyey+","+eyez+"]");
-
-
+   var eyex,eyey,eyez;
+   eyex=radius*Math.cos(phi)*Math.cos(theta);
+   eyey=radius*Math.cos(phi)*Math.sin(theta);
+   eyez=radius*Math.sin(phi);
+   var eye = vec3(eyex,eyey,eyez);
     var modelViewMatrix = lookAt( eye, at, up );
     var projectionMatrix = ortho( left, right, bottom, ytop, near, far );
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
 
-
     gl.uniformMatrix4fv(r_thetaLoc,false,flatten(r_theta));
-
-
     //6 faces 4 points each
     for(var i=0; i<points.length; i+=4) {
         gl.uniform4fv(fColor, flatten(colors[i/4]));
